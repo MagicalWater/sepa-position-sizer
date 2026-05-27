@@ -1,3 +1,11 @@
 .worktrees/
 .superpowers/
 .codex/
+
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+vite.config.js
+vite.config.d.ts
