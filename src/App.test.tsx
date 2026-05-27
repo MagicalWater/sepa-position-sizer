@@ -197,6 +197,39 @@ describe('App', () => {
     expect(screen.getByLabelText('本次停損價')).toHaveValue(97);
   });
 
+  it('點擊重設設定後回到預設值並更新 localStorage', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        totalCapital: 250000,
+        realizedPnL: 1200,
+        unrealizedProfit: 800,
+        discountPercent: 40,
+        fullPositionPercent: 20,
+        fullRiskMode: 'manual',
+        fullRiskPercent: 0.8,
+        manualFullRiskAmount: 1500,
+        lotSize: 10,
+        entryPrice: 88.5,
+        currentStopPrice: 85
+      })
+    );
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '重設設定' }));
+
+    expect(screen.getByLabelText('總投資資金')).toHaveValue(100000);
+    expect(screen.getByLabelText('入場價')).toHaveValue(100);
+    expect(screen.getByLabelText('本次停損價')).toHaveValue(97);
+    expect(screen.getByRole('button', { name: '依比例' })).toHaveAttribute('aria-pressed', 'true');
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? '{}');
+    expect(saved.totalCapital).toBe(100000);
+    expect(saved.entryPrice).toBe(100);
+    expect(saved.currentStopPrice).toBe(97);
+    expect(saved.fullRiskMode).toBe('percent');
+  });
+
   it('最終股數為零時顯示警示', async () => {
     const user = userEvent.setup();
     render(<App />);

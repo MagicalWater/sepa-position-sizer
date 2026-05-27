@@ -134,6 +134,24 @@ export function App() {
   const [entryPrice, setEntryPrice] = useState(initialSettings.entryPrice);
   const [currentStopPrice, setCurrentStopPrice] = useState(initialSettings.currentStopPrice);
 
+  const applySettings = (settings: SettingsState) => {
+    setTotalCapital(settings.totalCapital);
+    setRealizedPnL(settings.realizedPnL);
+    setUnrealizedProfit(settings.unrealizedProfit);
+    setDiscountPercent(settings.discountPercent);
+    setFullPositionPercent(settings.fullPositionPercent);
+    setFullRiskMode(settings.fullRiskMode);
+    setFullRiskPercent(settings.fullRiskPercent);
+    setManualFullRiskAmount(settings.manualFullRiskAmount);
+    setLotSize(settings.lotSize);
+    setEntryPrice(settings.entryPrice);
+    setCurrentStopPrice(settings.currentStopPrice);
+  };
+
+  const resetSettings = () => {
+    applySettings(defaultSettings);
+  };
+
   useEffect(() => {
     const settings: SettingsState = {
       totalCapital,
@@ -312,6 +330,9 @@ export function App() {
         <div className="header-metrics">
           <span className={`status-chip ${canTrade ? 'status-ok' : 'status-risk'}`}>{statusLabel}</span>
           <Metric label="絕對停損價" value={formatNumber(derived.absoluteStop.absoluteStopPrice)} tone={canTrade ? 'good' : 'risk'} />
+          <button className="reset-button" type="button" onClick={resetSettings}>
+            重設設定
+          </button>
         </div>
       </header>
 

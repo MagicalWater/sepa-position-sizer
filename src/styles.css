@@ -78,7 +78,7 @@ h2 {
 
 .header-metrics {
   display: grid;
-  grid-template-columns: minmax(108px, auto) minmax(150px, 220px);
+  grid-template-columns: minmax(108px, auto) minmax(150px, 220px) minmax(120px, 150px);
   gap: 10px;
   align-items: stretch;
 }
@@ -104,6 +104,26 @@ h2 {
   color: #d09a96;
   border-color: #6e4240;
   background: #251919;
+}
+
+.reset-button {
+  min-height: 54px;
+  padding: 0 14px;
+  color: #dfe8e2;
+  border: 1px solid #3a4a44;
+  border-radius: 8px;
+  background: #121716;
+  font-weight: 700;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.reset-button:hover,
+.reset-button:focus-visible {
+  border-color: #6d8278;
+  background: #17201d;
+  outline: none;
 }
 
 .workspace-grid {
