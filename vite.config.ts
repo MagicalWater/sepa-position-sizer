@@ -1,14 +1,14 @@
-import { defineConfig, type UserConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import type { InlineConfig } from 'vitest';
 
 const config = {
+  base: '/sepa-position-sizer/',
   plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts'
   }
-} satisfies UserConfig & { test: InlineConfig };
+};
 
 export default defineConfig(config);
