@@ -84,14 +84,20 @@ export function sizePosition(input: {
   selectedExposureCap: number;
   lotSize: number;
 }) {
-  const perShareRisk = roundMoney(input.entryPrice - input.currentStopPrice);
-  const currentStopPercent = perShareRisk / input.entryPrice;
-  const riskBasedShares = floorToLot(input.selectedRiskAmount / perShareRisk, input.lotSize);
+  const rawPerShareRisk = input.entryPrice - input.currentStopPrice;
+
+  if (rawPerShareRisk <= 0) {
+    throw new Error('每股風險必須大於 0');
+  }
+
+  const perShareRisk = roundMoney(rawPerShareRisk);
+  const currentStopPercent = rawPerShareRisk / input.entryPrice;
+  const riskBasedShares = floorToLot(input.selectedRiskAmount / rawPerShareRisk, input.lotSize);
   const exposureCapShares = floorToLot(input.selectedExposureCap / input.entryPrice, input.lotSize);
   const finalShares = Math.min(riskBasedShares, exposureCapShares);
   const positionValue = roundMoney(finalShares * input.entryPrice);
   const positionPercent = positionValue / input.totalCapital;
-  const actualLossAtStop = roundMoney(finalShares * perShareRisk);
+  const actualLossAtStop = roundMoney(finalShares * rawPerShareRisk);
 
   return {
     perShareRisk,

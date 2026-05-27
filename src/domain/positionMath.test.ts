@@ -75,6 +75,52 @@ describe('positionMath', () => {
     });
   });
 
+  it('極小但正的價差不應產生 Infinity', () => {
+    const result = sizePosition({
+      totalCapital: 100000,
+      entryPrice: 100.004,
+      currentStopPrice: 100.001,
+      selectedRiskAmount: 1,
+      selectedExposureCap: 100000,
+      lotSize: 1
+    });
+
+    expect(Number.isFinite(result.riskBasedShares)).toBe(true);
+    expect(Number.isFinite(result.finalShares)).toBe(true);
+  });
+
+  it('停損價等於入場價時應拒絕計算', () => {
+    expect(() => sizePosition({
+      totalCapital: 100000,
+      entryPrice: 100,
+      currentStopPrice: 100,
+      selectedRiskAmount: 1000,
+      selectedExposureCap: 25000,
+      lotSize: 1
+    })).toThrow('每股風險必須大於 0');
+  });
+
+  it('lotSize 大於 1 時股數應向下取整到交易單位', () => {
+    expect(sizePosition({
+      totalCapital: 100000,
+      entryPrice: 100,
+      currentStopPrice: 97,
+      selectedRiskAmount: 1000,
+      selectedExposureCap: 25000,
+      lotSize: 100
+    })).toEqual({
+      perShareRisk: 3,
+      currentStopPercent: 0.03,
+      riskBasedShares: 300,
+      exposureCapShares: 200,
+      finalShares: 200,
+      positionValue: 20000,
+      positionPercent: 0.2,
+      actualLossAtStop: 600,
+      cappedByExposure: true
+    });
+  });
+
   it('計算 1R 2R 3R 參考價', () => {
     expect(calculateTargets({ entryPrice: 100, perShareRisk: 3 })).toEqual({
       target1R: 103,
