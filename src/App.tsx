@@ -10,16 +10,17 @@ import {
 } from './domain/positionMath';
 import { validateDerivedState, validateInputs } from './domain/validation';
 
-const formatNumber = (value: number) =>
-  new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 2 }).format(value);
+const numberFormatter = new Intl.NumberFormat('zh-TW', { maximumFractionDigits: 2 });
+const percentFormatter = new Intl.NumberFormat('zh-TW', {
+  style: 'percent',
+  maximumFractionDigits: 2
+});
 
-const formatMoney = (value: number) => `${formatNumber(value)} 元`;
+const formatNumber = (value: number) => (Number.isFinite(value) ? numberFormatter.format(value) : '--');
 
-const formatPercent = (value: number) =>
-  new Intl.NumberFormat('zh-TW', {
-    style: 'percent',
-    maximumFractionDigits: 2
-  }).format(value);
+const formatMoney = (value: number) => (Number.isFinite(value) ? `${formatNumber(value)} 元` : '--');
+
+const formatPercent = (value: number) => (Number.isFinite(value) ? percentFormatter.format(value) : '--');
 
 type NumberFieldProps = {
   label: string;

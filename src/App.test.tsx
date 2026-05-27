@@ -26,6 +26,31 @@ describe('App', () => {
     expect(screen.queryByText('最終建議股數')).not.toBeInTheDocument();
   });
 
+  it('清空必要數值時不顯示非有限推導值', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const entryInput = screen.getByLabelText('入場價');
+    await user.clear(entryInput);
+
+    expect(screen.getAllByText('不建議交易').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('--').length).toBeGreaterThan(0);
+    expect(document.body).not.toHaveTextContent(/NaN|Infinity|∞|非數值/);
+  });
+
+  it('輸入導致無限推導值時不顯示非有限推導值', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const totalCapitalInput = screen.getByLabelText('總投資資金');
+    await user.clear(totalCapitalInput);
+    await user.type(totalCapitalInput, '0');
+
+    expect(screen.getAllByText('不建議交易').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('--').length).toBeGreaterThan(0);
+    expect(document.body).not.toHaveTextContent(/NaN|Infinity|∞|非數值/);
+  });
+
   it('有效停損時顯示限制後結果', () => {
     render(<App />);
 
