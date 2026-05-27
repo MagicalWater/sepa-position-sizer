@@ -214,8 +214,8 @@ export function App() {
     <main className="workstation">
       <header className="topbar">
         <div>
-          <p className="eyebrow">本地倉位試算工作台</p>
-          <h1>SEPA Position Sizer</h1>
+          <p className="eyebrow">本地風險試算工作台</p>
+          <h1>SEPA 倉位試算器</h1>
         </div>
         <div className="header-metrics">
           <span className={`status-chip ${canTrade ? 'status-ok' : 'status-risk'}`}>{statusLabel}</span>
@@ -224,112 +224,118 @@ export function App() {
       </header>
 
       <section className="workspace-grid" aria-label="倉位試算工作區">
-        <div className="column">
-          <section className="panel">
-            <h2>帳戶與獲利緩衝</h2>
-            <div className="field-grid">
-              <NumberField label="總投資資金" min={1} value={totalCapital} onChange={setTotalCapital} />
-              <NumberField label="已實現損益" value={realizedPnL} onChange={setRealizedPnL} />
-              <NumberField label="未實現浮盈" value={unrealizedProfit} onChange={setUnrealizedProfit} />
-              <NumberField label="浮盈折扣百分比" min={0} step={0.5} value={discountPercent} onChange={setDiscountPercent} />
-            </div>
-            <Metric label="可用獲利緩衝" value={formatMoney(derived.profitCushion)} tone="good" />
-          </section>
-
-          <section className="panel">
-            <h2>滿倉風險規則</h2>
-            <div className="segmented" aria-label="滿倉風險模式" role="group">
-              <button
-                aria-pressed={fullRiskMode === 'percent'}
-                className={fullRiskMode === 'percent' ? 'active' : ''}
-                type="button"
-                onClick={() => setFullRiskMode('percent')}
-              >
-                依比例
-              </button>
-              <button
-                aria-pressed={fullRiskMode === 'manual'}
-                className={fullRiskMode === 'manual' ? 'active' : ''}
-                type="button"
-                onClick={() => setFullRiskMode('manual')}
-              >
-                手動金額
-              </button>
-            </div>
-            <div className="field-grid">
-              <NumberField label="滿倉投入百分比" min={0.1} step={0.5} value={fullPositionPercent} onChange={setFullPositionPercent} />
-              {fullRiskMode === 'percent' ? (
-                <NumberField label="滿倉風險百分比" min={0.1} step={0.1} value={fullRiskPercent} onChange={setFullRiskPercent} />
-              ) : (
-                <NumberField label="手動滿倉風險金額" min={1} value={manualFullRiskAmount} onChange={setManualFullRiskAmount} />
-              )}
-              <NumberField label="股數單位" min={1} value={lotSize} onChange={setLotSize} />
-            </div>
-            <Metric label="滿倉 1R 風險金額" value={formatMoney(derived.fullRiskAmount)} tone="warn" />
-          </section>
-        </div>
-
-        <div className="column">
-          <section className="panel">
-            <h2>本次價格</h2>
-            <div className="field-grid">
-              <NumberField label="入場價" min={0.01} step={0.01} value={entryPrice} onChange={setEntryPrice} />
-              <NumberField label="本次停損價" min={0.01} step={0.01} value={currentStopPrice} onChange={setCurrentStopPrice} />
-            </div>
-            <div className="metric-list compact-metrics">
-              <Metric label="本次停損比例" value={formatPercent(derived.currentStopPercent)} tone={canTrade ? 'good' : 'risk'} />
-              <Metric label="每股風險" value={formatMoney(derived.currentPerShareRisk)} tone="risk" />
-              <Metric label="R 倍價格基準" value={formatMoney(derived.currentPerShareRisk)} />
-            </div>
-            <div className="notice" aria-live="polite">
-              <div>
-                <span>判斷狀態</span>
-                <p>{entryValidityMessage}</p>
+        <div className="primary-grid">
+          <div className="column">
+            <section className="panel" aria-labelledby="risk-settings-title">
+              <h2 id="risk-settings-title">風險設定</h2>
+              <div className="field-grid">
+                <NumberField label="總投資資金" min={1} value={totalCapital} onChange={setTotalCapital} />
+                <NumberField label="已實現損益" value={realizedPnL} onChange={setRealizedPnL} />
+                <NumberField label="未實現浮盈" value={unrealizedProfit} onChange={setUnrealizedProfit} />
+                <NumberField label="浮盈折扣百分比" min={0} step={0.5} value={discountPercent} onChange={setDiscountPercent} />
               </div>
-              <strong>{statusLabel}</strong>
-            </div>
-          </section>
+              <Metric label="可用獲利緩衝" value={formatMoney(derived.profitCushion)} tone="good" />
 
-          <section className="panel">
-            <h2>自動推導</h2>
-            <div className="metric-list">
-              <Metric label="滿倉投入金額" value={formatMoney(derived.absoluteStop.fullPositionCapital)} />
-              <Metric label="絕對停損比例" value={formatPercent(derived.absoluteStop.absoluteStopPercent)} />
-              <Metric label="絕對停損價" value={formatNumber(derived.absoluteStop.absoluteStopPrice)} tone={canTrade ? 'good' : 'risk'} />
-              <Metric label="入場有效性" value={canTrade ? '有效' : '無效'} tone={canTrade ? 'good' : 'risk'} />
-              <Metric label="風險級別" value={derived.selectedTier.label} tone="warn" />
-              <Metric label="本次風險上限" value={formatMoney(derived.selectedRiskAmount)} />
-            </div>
-            <p className="panel-note">{entryValidityMessage}</p>
-          </section>
-
-          {derived.errors.length > 0 && (
-            <section className="panel alert-panel" aria-label="錯誤狀態">
-              <h2>錯誤狀態</h2>
-              <ul>
-                {derived.errors.map((error) => (
-                  <li key={error}>{error}</li>
-                ))}
-              </ul>
+              <div className="section-divider" />
+              <div className="segmented" aria-label="滿倉風險模式" role="group">
+                <button
+                  aria-pressed={fullRiskMode === 'percent'}
+                  className={fullRiskMode === 'percent' ? 'active' : ''}
+                  type="button"
+                  onClick={() => setFullRiskMode('percent')}
+                >
+                  依比例
+                </button>
+                <button
+                  aria-pressed={fullRiskMode === 'manual'}
+                  className={fullRiskMode === 'manual' ? 'active' : ''}
+                  type="button"
+                  onClick={() => setFullRiskMode('manual')}
+                >
+                  手動金額
+                </button>
+              </div>
+              <div className="field-grid">
+                <NumberField label="滿倉投入百分比" min={0.1} step={0.5} value={fullPositionPercent} onChange={setFullPositionPercent} />
+                {fullRiskMode === 'percent' ? (
+                  <NumberField label="滿倉風險百分比" min={0.1} step={0.1} value={fullRiskPercent} onChange={setFullRiskPercent} />
+                ) : (
+                  <NumberField label="手動滿倉風險金額" min={1} value={manualFullRiskAmount} onChange={setManualFullRiskAmount} />
+                )}
+                <NumberField label="股數單位" min={1} value={lotSize} onChange={setLotSize} />
+              </div>
+              <Metric label="滿倉 1R 風險金額" value={formatMoney(derived.fullRiskAmount)} tone="warn" />
             </section>
-          )}
+          </div>
+
+          <div className="column">
+            <section className="panel" aria-labelledby="entry-settings-title">
+              <h2 id="entry-settings-title">入場設定</h2>
+              <div className="field-grid">
+                <NumberField label="入場價" min={0.01} step={0.01} value={entryPrice} onChange={setEntryPrice} />
+                <NumberField label="本次停損價" min={0.01} step={0.01} value={currentStopPrice} onChange={setCurrentStopPrice} />
+              </div>
+            </section>
+
+            <section className="panel" aria-labelledby="stop-check-title">
+              <h2 id="stop-check-title">停損檢查</h2>
+              <div className="metric-list compact-metrics">
+                <Metric label="本次停損比例" value={formatPercent(derived.currentStopPercent)} tone={canTrade ? 'good' : 'risk'} />
+                <Metric label="每股風險" value={formatMoney(derived.currentPerShareRisk)} tone="risk" />
+                <Metric label="R 倍價格基準" value={formatMoney(derived.currentPerShareRisk)} />
+                <Metric label="滿倉投入金額" value={formatMoney(derived.absoluteStop.fullPositionCapital)} />
+                <Metric label="絕對停損比例" value={formatPercent(derived.absoluteStop.absoluteStopPercent)} />
+                <Metric label="絕對停損價" value={formatNumber(derived.absoluteStop.absoluteStopPrice)} tone={canTrade ? 'good' : 'risk'} />
+                <Metric label="入場有效性" value={canTrade ? '有效' : '無效'} tone={canTrade ? 'good' : 'risk'} />
+              </div>
+              <div className="notice" aria-live="polite">
+                <div>
+                  <span>判斷狀態</span>
+                  <p>{entryValidityMessage}</p>
+                </div>
+                <strong>{statusLabel}</strong>
+              </div>
+            </section>
+
+            {derived.errors.length > 0 && (
+              <section className="panel alert-panel" aria-label="錯誤狀態">
+                <h2>錯誤狀態</h2>
+                <ul>
+                  {derived.errors.map((error) => (
+                    <li key={error}>{error}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+
         </div>
 
         <div className="column">
-          <section className="panel result-panel">
-            <h2>倉位結果</h2>
+          <section className="panel result-panel" aria-labelledby="position-result-title">
+            <h2 id="position-result-title">倉位決策</h2>
             {canTrade && derived.position ? (
               <div className="result-stack">
-                <Metric label="最終建議股數" value={`${formatNumber(derived.position.finalShares)} 股`} tone="good" />
-                <Metric label="風險級別" value={derived.selectedTier.label} tone="warn" />
-                <Metric label="風險可買股數" value={`${formatNumber(derived.position.riskBasedShares)} 股`} />
-                <Metric label="投入上限股數" value={`${formatNumber(derived.position.exposureCapShares)} 股`} />
-                <Metric label="每股風險" value={formatMoney(derived.position.perShareRisk)} tone="risk" />
-                <Metric label="部位金額" value={formatMoney(derived.position.positionValue)} />
-                <Metric label="部位比例" value={formatPercent(derived.position.positionPercent)} />
-                <Metric label="停損損失估算" value={formatMoney(derived.position.actualLossAtStop)} tone="risk" />
-                <Metric label="停損後剩餘緩衝" value={formatMoney(remainingProfitCushion)} tone={remainingProfitCushion >= quarterTierRisk ? 'good' : 'risk'} />
-                <Metric label="限制來源" value={derived.position.cappedByExposure ? '投入上限' : '風險上限'} tone="warn" />
+                <div className="decision-hero">
+                  <span>建議股數</span>
+                  <strong>{formatNumber(derived.position.finalShares)} 股</strong>
+                  <small>
+                    <span>本次可投入金額</span>
+                    <b>{formatMoney(derived.position.positionValue)}</b>
+                  </small>
+                </div>
+                <div className="decision-metrics">
+                  <Metric label="風險級別" value={derived.selectedTier.label} tone="warn" />
+                  <Metric label="本次風險上限" value={formatMoney(derived.selectedRiskAmount)} />
+                  <Metric label="風險可買股數" value={`${formatNumber(derived.position.riskBasedShares)} 股`} />
+                  <Metric label="投入上限股數" value={`${formatNumber(derived.position.exposureCapShares)} 股`} />
+                  <Metric label="每股風險" value={formatMoney(derived.position.perShareRisk)} tone="risk" />
+                  <Metric label="部位金額" value={formatMoney(derived.position.positionValue)} />
+                  <Metric label="部位比例" value={formatPercent(derived.position.positionPercent)} />
+                  <Metric label="停損損失估算" value={formatMoney(derived.position.actualLossAtStop)} tone="risk" />
+                  <Metric label="停損後剩餘緩衝" value={formatMoney(remainingProfitCushion)} tone={remainingProfitCushion >= quarterTierRisk ? 'good' : 'risk'} />
+                  <Metric label="限制來源" value={derived.position.cappedByExposure ? '投入上限' : '風險上限'} tone="warn" />
+                </div>
                 {warnings.length > 0 && (
                   <ul className="warning-list" aria-label="風險提示">
                     {warnings.map((warning) => (
@@ -345,23 +351,23 @@ export function App() {
               </div>
             )}
           </section>
-
-          <section className="panel">
-            <h2>R 倍參考價</h2>
-            {canTrade && derived.targets ? (
-              <>
-                <p className="panel-note">以入場價加上每股風險推導 1R、2R、3R。</p>
-                <div className="target-grid">
-                  <Metric label="1R 參考價" value={formatNumber(derived.targets.target1R)} />
-                  <Metric label="2R 參考價" value={formatNumber(derived.targets.target2R)} />
-                  <Metric label="3R 參考價" value={formatNumber(derived.targets.target3R)} />
-                </div>
-              </>
-            ) : (
-              <p className="muted-text">通過停損檢查後顯示參考價。</p>
-            )}
-          </section>
         </div>
+
+        <section className="panel target-panel" aria-labelledby="targets-title">
+          <h2 id="targets-title">參考止盈</h2>
+          {canTrade && derived.targets ? (
+            <>
+              <p className="panel-note">以入場價加上每股風險推導 1R、2R、3R。</p>
+              <div className="target-grid">
+                <Metric label="1R 參考價" value={formatNumber(derived.targets.target1R)} />
+                <Metric label="2R 參考價" value={formatNumber(derived.targets.target2R)} />
+                <Metric label="3R 參考價" value={formatNumber(derived.targets.target3R)} />
+              </div>
+            </>
+          ) : (
+            <p className="muted-text">通過停損檢查後顯示參考價。</p>
+          )}
+        </section>
       </section>
     </main>
   );

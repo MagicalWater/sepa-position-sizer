@@ -7,11 +7,35 @@ describe('App', () => {
   it('顯示核心中文區塊', () => {
     render(<App />);
 
-    expect(screen.getByText('帳戶與獲利緩衝')).toBeInTheDocument();
-    expect(screen.getByText('滿倉風險規則')).toBeInTheDocument();
-    expect(screen.getByText('本次價格')).toBeInTheDocument();
-    expect(screen.getByText('自動推導')).toBeInTheDocument();
-    expect(screen.getByText('倉位結果')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'SEPA 倉位試算器' })).toBeInTheDocument();
+    expect(screen.getByText('風險設定')).toBeInTheDocument();
+    expect(screen.getByText('入場設定')).toBeInTheDocument();
+    expect(screen.getByText('停損檢查')).toBeInTheDocument();
+    expect(screen.getByText('倉位決策')).toBeInTheDocument();
+    expect(screen.getByText('參考止盈')).toBeInTheDocument();
+  });
+
+  it('依照確認的三欄流程呈現區塊', () => {
+    render(<App />);
+
+    expect(screen.getByRole('region', { name: '風險設定' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: '入場設定' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: '停損檢查' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: '倉位決策' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: '參考止盈' })).toBeInTheDocument();
+
+    expect(screen.queryByText('帳戶與獲利緩衝')).not.toBeInTheDocument();
+    expect(screen.queryByText('滿倉風險規則')).not.toBeInTheDocument();
+    expect(screen.queryByText('本次價格')).not.toBeInTheDocument();
+    expect(screen.queryByText('自動推導')).not.toBeInTheDocument();
+    expect(screen.queryByText('倉位結果')).not.toBeInTheDocument();
+  });
+
+  it('參考止盈跨滿整個倉位試算工作區', () => {
+    render(<App />);
+
+    const targets = screen.getByRole('region', { name: '參考止盈' });
+    expect(targets.parentElement).toHaveClass('workspace-grid');
   });
 
   it('輸入過遠停損時顯示不建議交易', async () => {
@@ -55,8 +79,9 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getAllByText('可交易').length).toBeGreaterThan(0);
-    expect(screen.getByText('最終建議股數')).toBeInTheDocument();
+    expect(screen.getByText('建議股數')).toBeInTheDocument();
     expect(screen.getAllByText('250 股').length).toBeGreaterThan(0);
+    expect(screen.getByText('本次可投入金額')).toBeInTheDocument();
   });
 
   it('有效停損時顯示完整風險推導與剩餘緩衝', () => {
