@@ -1,9 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
 
+const storageKey = 'sepa-position-sizer:settings:v1';
+
 describe('App', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('顯示核心中文區塊', () => {
     render(<App />);
 
@@ -131,6 +137,64 @@ describe('App', () => {
     expect(manualButton).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByLabelText('滿倉風險百分比')).not.toBeInTheDocument();
     expect(screen.getByLabelText('手動滿倉風險金額')).toBeInTheDocument();
+  });
+
+  it('重新載入時使用 localStorage 保存的設定值', () => {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        totalCapital: 250000,
+        realizedPnL: 1200,
+        unrealizedProfit: 800,
+        discountPercent: 40,
+        fullPositionPercent: 20,
+        fullRiskMode: 'manual',
+        fullRiskPercent: 0.8,
+        manualFullRiskAmount: 1500,
+        lotSize: 10,
+        entryPrice: 88.5,
+        currentStopPrice: 85
+      })
+    );
+
+    render(<App />);
+
+    expect(screen.getByLabelText('總投資資金')).toHaveValue(250000);
+    expect(screen.getByLabelText('已實現損益')).toHaveValue(1200);
+    expect(screen.getByLabelText('未實現浮盈')).toHaveValue(800);
+    expect(screen.getByLabelText('浮盈折扣百分比')).toHaveValue(40);
+    expect(screen.getByLabelText('滿倉投入百分比')).toHaveValue(20);
+    expect(screen.getByRole('button', { name: '手動金額' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('手動滿倉風險金額')).toHaveValue(1500);
+    expect(screen.getByLabelText('股數單位')).toHaveValue(10);
+    expect(screen.getByLabelText('入場價')).toHaveValue(88.5);
+    expect(screen.getByLabelText('本次停損價')).toHaveValue(85);
+  });
+
+  it('修改設定後自動保存到 localStorage', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.clear(screen.getByLabelText('總投資資金'));
+    await user.type(screen.getByLabelText('總投資資金'), '300000');
+    await user.clear(screen.getByLabelText('入場價'));
+    await user.type(screen.getByLabelText('入場價'), '120');
+    await user.click(screen.getByRole('button', { name: '手動金額' }));
+
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? '{}');
+    expect(saved.totalCapital).toBe(300000);
+    expect(saved.entryPrice).toBe(120);
+    expect(saved.fullRiskMode).toBe('manual');
+  });
+
+  it('localStorage 資料損壞時使用預設設定', () => {
+    localStorage.setItem(storageKey, '{broken');
+
+    render(<App />);
+
+    expect(screen.getByLabelText('總投資資金')).toHaveValue(100000);
+    expect(screen.getByLabelText('入場價')).toHaveValue(100);
+    expect(screen.getByLabelText('本次停損價')).toHaveValue(97);
   });
 
   it('最終股數為零時顯示警示', async () => {

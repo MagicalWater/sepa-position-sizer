@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   type FullRiskMode,
   calculateAbsoluteStop,
@@ -21,6 +21,68 @@ const formatNumber = (value: number) => (Number.isFinite(value) ? numberFormatte
 const formatMoney = (value: number) => (Number.isFinite(value) ? `${formatNumber(value)} 元` : '--');
 
 const formatPercent = (value: number) => (Number.isFinite(value) ? percentFormatter.format(value) : '--');
+
+const settingsStorageKey = 'sepa-position-sizer:settings:v1';
+
+type SettingsState = {
+  totalCapital: number;
+  realizedPnL: number;
+  unrealizedProfit: number;
+  discountPercent: number;
+  fullPositionPercent: number;
+  fullRiskMode: FullRiskMode;
+  fullRiskPercent: number;
+  manualFullRiskAmount: number;
+  lotSize: number;
+  entryPrice: number;
+  currentStopPrice: number;
+};
+
+const defaultSettings: SettingsState = {
+  totalCapital: 100000,
+  realizedPnL: 500,
+  unrealizedProfit: 1000,
+  discountPercent: 50,
+  fullPositionPercent: 25,
+  fullRiskMode: 'percent',
+  fullRiskPercent: 1,
+  manualFullRiskAmount: 1000,
+  lotSize: 1,
+  entryPrice: 100,
+  currentStopPrice: 97
+};
+
+const readNumberSetting = (value: unknown, fallback: number) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback);
+
+const readSettings = (): SettingsState => {
+  if (typeof window === 'undefined') {
+    return defaultSettings;
+  }
+
+  try {
+    const rawSettings = window.localStorage.getItem(settingsStorageKey);
+    if (rawSettings === null) {
+      return defaultSettings;
+    }
+
+    const parsedSettings = JSON.parse(rawSettings) as Partial<SettingsState>;
+    return {
+      totalCapital: readNumberSetting(parsedSettings.totalCapital, defaultSettings.totalCapital),
+      realizedPnL: readNumberSetting(parsedSettings.realizedPnL, defaultSettings.realizedPnL),
+      unrealizedProfit: readNumberSetting(parsedSettings.unrealizedProfit, defaultSettings.unrealizedProfit),
+      discountPercent: readNumberSetting(parsedSettings.discountPercent, defaultSettings.discountPercent),
+      fullPositionPercent: readNumberSetting(parsedSettings.fullPositionPercent, defaultSettings.fullPositionPercent),
+      fullRiskMode: parsedSettings.fullRiskMode === 'manual' || parsedSettings.fullRiskMode === 'percent' ? parsedSettings.fullRiskMode : defaultSettings.fullRiskMode,
+      fullRiskPercent: readNumberSetting(parsedSettings.fullRiskPercent, defaultSettings.fullRiskPercent),
+      manualFullRiskAmount: readNumberSetting(parsedSettings.manualFullRiskAmount, defaultSettings.manualFullRiskAmount),
+      lotSize: readNumberSetting(parsedSettings.lotSize, defaultSettings.lotSize),
+      entryPrice: readNumberSetting(parsedSettings.entryPrice, defaultSettings.entryPrice),
+      currentStopPrice: readNumberSetting(parsedSettings.currentStopPrice, defaultSettings.currentStopPrice)
+    };
+  } catch {
+    return defaultSettings;
+  }
+};
 
 type NumberFieldProps = {
   label: string;
@@ -59,17 +121,47 @@ function Metric({ label, value, tone = 'neutral' }: { label: string; value: stri
 }
 
 export function App() {
-  const [totalCapital, setTotalCapital] = useState(100000);
-  const [realizedPnL, setRealizedPnL] = useState(500);
-  const [unrealizedProfit, setUnrealizedProfit] = useState(1000);
-  const [discountPercent, setDiscountPercent] = useState(50);
-  const [fullPositionPercent, setFullPositionPercent] = useState(25);
-  const [fullRiskMode, setFullRiskMode] = useState<FullRiskMode>('percent');
-  const [fullRiskPercent, setFullRiskPercent] = useState(1);
-  const [manualFullRiskAmount, setManualFullRiskAmount] = useState(1000);
-  const [lotSize, setLotSize] = useState(1);
-  const [entryPrice, setEntryPrice] = useState(100);
-  const [currentStopPrice, setCurrentStopPrice] = useState(97);
+  const initialSettings = useMemo(readSettings, []);
+  const [totalCapital, setTotalCapital] = useState(initialSettings.totalCapital);
+  const [realizedPnL, setRealizedPnL] = useState(initialSettings.realizedPnL);
+  const [unrealizedProfit, setUnrealizedProfit] = useState(initialSettings.unrealizedProfit);
+  const [discountPercent, setDiscountPercent] = useState(initialSettings.discountPercent);
+  const [fullPositionPercent, setFullPositionPercent] = useState(initialSettings.fullPositionPercent);
+  const [fullRiskMode, setFullRiskMode] = useState<FullRiskMode>(initialSettings.fullRiskMode);
+  const [fullRiskPercent, setFullRiskPercent] = useState(initialSettings.fullRiskPercent);
+  const [manualFullRiskAmount, setManualFullRiskAmount] = useState(initialSettings.manualFullRiskAmount);
+  const [lotSize, setLotSize] = useState(initialSettings.lotSize);
+  const [entryPrice, setEntryPrice] = useState(initialSettings.entryPrice);
+  const [currentStopPrice, setCurrentStopPrice] = useState(initialSettings.currentStopPrice);
+
+  useEffect(() => {
+    const settings: SettingsState = {
+      totalCapital,
+      realizedPnL,
+      unrealizedProfit,
+      discountPercent,
+      fullPositionPercent,
+      fullRiskMode,
+      fullRiskPercent,
+      manualFullRiskAmount,
+      lotSize,
+      entryPrice,
+      currentStopPrice
+    };
+    window.localStorage.setItem(settingsStorageKey, JSON.stringify(settings));
+  }, [
+    currentStopPrice,
+    discountPercent,
+    entryPrice,
+    fullPositionPercent,
+    fullRiskMode,
+    fullRiskPercent,
+    lotSize,
+    manualFullRiskAmount,
+    realizedPnL,
+    totalCapital,
+    unrealizedProfit
+  ]);
 
   const derived = useMemo(() => {
     const unrealizedProfitDiscountRate = discountPercent / 100;
