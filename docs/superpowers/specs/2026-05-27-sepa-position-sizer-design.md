@@ -60,6 +60,15 @@ unrealizedProfitDiscountRate = 50%
 
 The discount rate is editable.
 
+MVP defaults:
+
+```text
+unrealizedProfitDiscountRate = 50%
+fullPositionExposurePercent = 25%
+fullRiskPercent = 1%
+lotSize = 1
+```
+
 ### Full Position Risk
 
 The user defines full-position risk using one of two modes:
@@ -125,7 +134,7 @@ Only valid setups continue to position sizing.
 
 ### Risk Tier
 
-Use the profit cushion to choose the maximum allowed risk tier.
+Use the profit cushion to choose the maximum allowed risk tier. The quarter tier is the baseline starter risk. Profit cushion is used to unlock larger half and full tiers.
 
 MVP tiers are fixed:
 
@@ -147,6 +156,8 @@ else if availableProfitCushion >= fullRiskAmount * 0.5:
 else:
   selectedTier = quarter
 ```
+
+This means the MVP always allows the baseline quarter tier when the setup itself is valid. If available profit cushion is below the quarter-tier risk, the UI should warn that a stop-out can reduce or eliminate the current cushion.
 
 The selected tier determines:
 
@@ -300,13 +311,13 @@ Show blocking errors for:
 - `fullRiskAmount <= 0`.
 - `lotSize <= 0`.
 - Derived `absoluteStopPercent <= 0`.
+- `currentStopPrice < absoluteStopPrice`, because the current stop is wider than the derived absolute stop.
 
 Show warnings for:
 
-- Current stop is below derived absolute stop.
 - Exposure cap reduces risk-based share count.
 - Final shares are zero because lot size, risk, or exposure cap is too restrictive.
-- Remaining profit cushion after stop is negative.
+- Remaining profit cushion after stop is negative or below the quarter-tier risk.
 
 ## Visual Direction
 
