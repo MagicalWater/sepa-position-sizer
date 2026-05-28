@@ -223,7 +223,7 @@ export function App() {
       fullRiskAmount
     });
     const selectedRiskAmount = fullRiskAmount * selectedTier.riskMultiplier;
-    const selectedExposureCap = totalCapital * selectedTier.exposurePercent;
+    const selectedExposureCap = totalCapital * fullPositionExposurePercent * selectedTier.riskMultiplier;
     const rawPerShareRisk = entryPrice - currentStopPrice;
     const currentPerShareRisk = Number.isFinite(rawPerShareRisk) && rawPerShareRisk > 0 ? rawPerShareRisk : Number.NaN;
     const currentStopPercent =

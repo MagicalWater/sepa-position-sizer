@@ -104,6 +104,23 @@ describe('App', () => {
     expect(screen.getByText('投入上限低於風險可買股數，最終股數已由投入上限限制。')).toBeInTheDocument();
   });
 
+  it('滿倉投入百分比會同步縮放本次投入上限', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.clear(screen.getByLabelText('已實現損益'));
+    await user.type(screen.getByLabelText('已實現損益'), '0');
+    await user.clear(screen.getByLabelText('未實現浮盈'));
+    await user.type(screen.getByLabelText('未實現浮盈'), '0');
+    await user.clear(screen.getByLabelText('滿倉投入百分比'));
+    await user.type(screen.getByLabelText('滿倉投入百分比'), '20');
+
+    expect(screen.getByText('投入上限股數')).toBeInTheDocument();
+    expect(screen.getAllByText('50 股').length).toBeGreaterThan(0);
+    expect(screen.getByText('部位比例')).toBeInTheDocument();
+    expect(screen.getAllByText('5%').length).toBeGreaterThan(0);
+  });
+
   it('本次價格與自動推導區顯示停損比例、每股風險與有效性', () => {
     render(<App />);
 

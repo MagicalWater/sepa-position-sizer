@@ -6,13 +6,12 @@ export type RiskTier = {
   name: RiskTierName;
   label: string;
   riskMultiplier: number;
-  exposurePercent: number;
 };
 
 export const RISK_TIERS: RiskTier[] = [
-  { name: 'quarter', label: '1/4 倉', riskMultiplier: 0.25, exposurePercent: 0.0625 },
-  { name: 'half', label: '半倉', riskMultiplier: 0.5, exposurePercent: 0.125 },
-  { name: 'full', label: '滿倉', riskMultiplier: 1, exposurePercent: 0.25 }
+  { name: 'quarter', label: '1/4 倉', riskMultiplier: 0.25 },
+  { name: 'half', label: '半倉', riskMultiplier: 0.5 },
+  { name: 'full', label: '滿倉', riskMultiplier: 1 }
 ];
 
 export function roundMoney(value: number) {

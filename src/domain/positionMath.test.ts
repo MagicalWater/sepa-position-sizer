@@ -54,6 +54,12 @@ describe('positionMath', () => {
     expect(selectRiskTier({ availableProfitCushion: 249, fullRiskAmount: 1000 }).name).toBe('quarter');
   });
 
+  it('風險級別只描述本次使用滿倉的倍率', () => {
+    const quarterTier = selectRiskTier({ availableProfitCushion: 0, fullRiskAmount: 40000 });
+
+    expect(quarterTier.riskMultiplier).toBe(0.25);
+  });
+
   it('用風險金額與曝險上限計算最終股數', () => {
     expect(sizePosition({
       totalCapital: 100000,
